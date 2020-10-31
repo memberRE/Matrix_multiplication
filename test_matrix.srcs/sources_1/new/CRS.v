@@ -58,6 +58,12 @@ module CRS(
     reg need_out;
     reg eop_need_out;
     reg [31:0] cnt;
+    reg [11:0] line;
+    wire [11:0] addr_b;
+    wire eop_flag;
+    assign eop_flag = (eop_f2 == 1'b1)&&(transmod_f2 == 2'b00) && (row_f2 + 12'b1 == tot_line);
+
+    assign addr_b = wea_b == 1'b1 ? addr_save:column;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -72,15 +78,15 @@ module CRS(
                 addr_save <= addr_save + 12'b1;
             end
         end
-        /*else begin
-            addr_save<=addr_save;
-        end*/
+        // else begin
+        //     addr_save <= addr_save + 1'b1;
+        // end
     end
 
     blk_mem_gen_0 B_vec(
     .clka  (clk   ), // input wire clka
     .wea   (wea_b   ), // input wire [0 : 0] wea
-    .addra (addr_save ), // input wire [11 : 0] addra
+    .addra (addr_b ), // input wire [11 : 0] addra
     .dina  (data  ), // input wire [31 : 0] dina
     .douta (dout_b )  // output wire [31 : 0] douta
     );
@@ -125,7 +131,7 @@ module CRS(
             cnt <= 32'b0;
             ready<=1'b1;
         end
-        else if (~(transmod_f1[0] | transmod_f1[1]) & valid_f1 & ready) begin
+        else if (~(transmod[0] | transmod[1]) & valid & ready ) begin
             if (cnt == dout_offset - 32'b1) begin
                 addr_save <= addr_save + 1'b1;
             end
@@ -136,9 +142,16 @@ module CRS(
     my_mult mult__(
         .CLK (clk     ), // input wire CLK
         .A   (data_f1 ), // input wire [31 : 0] A
-        .B   (douta   ), // input wire [31 : 0] B
+        .B   (dout_b   ), // input wire [31 : 0] B
         .P   (P       )  // output wire [63 : 0] P
     );
+
+    // my_mult mult__(
+    //     .CLK (clk     ), // input wire CLK
+    //     .A   (data_f1 ), // input wire [31 : 0] A
+    //     .B   (data_f1 ), // input wire [31 : 0] B
+    //     .P   (P       )  // output wire [63 : 0] P
+    // );
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -161,7 +174,7 @@ module CRS(
         if (rst) begin
             need_out <= 1'b0;
         end
-        else if (valid_f2 & (~transmod_f2[0]) & (~transmod_f2[1]) && (row_f2!=row_f1)) begin
+        else if (valid_f2 & (~transmod_f2[0]) & (~transmod_f2[1]) && (row_f2!=row_f1 || eop_f2)) begin
             need_out <= 1'b1;
         end
         else begin
@@ -173,7 +186,8 @@ module CRS(
         if (rst) begin
             eop_need_out <= 1'b0;
         end
-        else if (eop_f2& (~transmod_f2[0]) & (~transmod_f2[1]) && (row_f2 + 1'b1 == tot_line)) begin
+        //else if (eop_f2& (~transmod_f2[0]) & (~transmod_f2[1]) && (row_f2 + 12'b1 == tot_line)) begin
+        else if (eop_flag) begin
             eop_need_out <= 1'b1;
         end
         else begin

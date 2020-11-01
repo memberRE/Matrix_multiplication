@@ -68,6 +68,8 @@ module CRS(
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             addr_save<=12'b0;
+            cnt <= 32'b0;
+            ready<=1'b1;
         end
         else if (wea_b || wea_row) begin
             if (eop) begin
@@ -77,6 +79,12 @@ module CRS(
             else begin
                 addr_save <= addr_save + 12'b1;
             end
+        end
+        else if (~(transmod[0] | transmod[1]) & valid & ready ) begin
+            if (cnt == dout_offset - 32'b1) begin
+                addr_save <= addr_save + 1'b1;
+            end
+            cnt <= cnt+32'b1;
         end
         // else begin
         //     addr_save <= addr_save + 1'b1;
@@ -126,18 +134,18 @@ module CRS(
         end
     end
 
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            cnt <= 32'b0;
-            ready<=1'b1;
-        end
-        else if (~(transmod[0] | transmod[1]) & valid & ready ) begin
-            if (cnt == dout_offset - 32'b1) begin
-                addr_save <= addr_save + 1'b1;
-            end
-            cnt <= cnt+32'b1;
-        end
-    end
+    // always @(posedge clk or posedge rst) begin
+    //     if (rst) begin
+    //         cnt <= 32'b0;
+    //         ready<=1'b1;
+    //     end
+    //     else if (~(transmod[0] | transmod[1]) & valid & ready ) begin
+    //         if (cnt == dout_offset - 32'b1) begin
+    //             addr_save <= addr_save + 1'b1;
+    //         end
+    //         cnt <= cnt+32'b1;
+    //     end
+    // end
 
     my_mult mult__(
         .CLK (clk     ), // input wire CLK

@@ -66,7 +66,7 @@ module CRS_tb(
 
     integer i,j;
     initial begin
-        file_out = $fopen("D:/FPGA/test_matrix/test_matrix/test_matrix.srcs/sources_1/new/ans.txt","w");
+        file_out = $fopen("D:/FPGA/test_matrix/test_matrix/test_matrix.srcs/sources_1/new/circuit_1_d.mtx","w");
         clk <= 1'b1;
         rst <= 1'b1;
         valid    <= 1'b0;
@@ -146,13 +146,13 @@ module CRS_tb(
     CRS my_CRS(
         .clk      (clk),
         .rst      (rst),
-        .valid    (valid), // 输入有效信号
-        .eop      (eop), // 本次传输�?后一个数�?
-        .transmod (transmod), // �?1时表示传输向量，�?0时传输矩�?
-        .data     (data), // 传输数据
-        .column   (column), // transmod�?0时表示当前传输非0数据�?在列
-        .valid_o  (valid_o), // 输出有效信号
-        .eop_o    (eop_o), // 本次传输�?后一个数�?
-        .data_o   (data_o)  // 输出数据
+        .valid    (valid),
+        .eop      (eop),
+        .transmod (transmod),
+        .data     (data), 
+        .column   (column), 
+        .valid_o  (valid_o), 
+        .eop_o    (eop_o),
+        .data_o   (data_o)
     );
 endmodule
